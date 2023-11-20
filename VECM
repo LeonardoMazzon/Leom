@@ -1,0 +1,35 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.tsa.vector_ar.vecm import *
+
+# Carica i dati dal file CSV
+df = pd.read_csv(r'C:\Users\leona\Desktop\Esempi Tesi\TESI MAZZ\DATI\DATI 14-09\Dati_Lavoro.csv', sep=';', decimal=",")
+
+df['Delta_Log_St']=np.log(df['St']).diff()
+# Calcola la variabile ΔLog_St-1 (diffrenza logaritmica di St ritardata di un periodo)
+df['Delta_Log_St_minus_1'] = np.log(df['St']).diff().shift(1)
+
+# Calcola la variabile ΔLog_Ft (differenza logaritmica di Ft)
+df['Delta_Log_Ft'] = np.log(df['Ft']).diff()
+
+df['Residui'] = model.resid
+df['Residui_Lagged'] = df['Residui'].shift(1)
+# Rimuovi le righe contenenti valori mancanti o non validi
+df = df.dropna()
+
+# Crea le variabili indipendenti e dipendenti
+X = df[['Delta_Log_St_minus_1', 'Delta_Log_Ft', 'Residui_Lagged']]
+y = df['Delta_Log_St']
+
+# Aggiungi una colonna costante (intercetta) alle variabili indipendenti
+X = sm.add_constant(X)
+
+# Crea un modello VECM
+model = VECM(X, k_ar_diff=1)  # Assumi il valore appropriato per 'k_ar_diff' basato sul tuo dataset
+
+# Adatta il modello
+model_fit = model.fit()
+
+# Visualizza i risultati del modello
+print(model_fit.summary())
